@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 
+const VALID_TYPES = ["inbound", "outbound", "adjustment"];
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const storeId = searchParams.get("storeId");
@@ -18,15 +20,46 @@ export async function POST(req: NextRequest) {
     const session = await getSession();
     const b = await req.json();
 
+    // Validación básica de entrada
+    const type = b.type;
+    if (!VALID_TYPES.includes(type)) {
+      return NextResponse.json(
+        { error: "Tipo de movimiento inválido" },
+        { status: 400 }
+      );
+    }
+    const quantity = Number(b.quantity);
+    if (!Number.isFinite(quantity) || quantity < 0) {
+      return NextResponse.json(
+        { error: "Cantidad inválida" },
+        { status: 400 }
+      );
+    }
+    if (!b.productId) {
+      return NextResponse.json(
+        { error: "El producto es obligatorio" },
+        { status: 400 }
+      );
+    }
+    if (!b.storeId) {
+      return NextResponse.json(
+        { error: "La tienda es obligatoria" },
+        { status: 400 }
+      );
+    }
+
+    // Aplica el cambio de stock:
+    // - inbound/outbound: relativo (+/- cantidad)
+    // - adjustment: absoluto (cantidad = nuevo stock)
     if (b.variantId) {
       const variant = await prisma.productVariant.findUnique({
         where: { id: b.variantId },
       });
       if (variant) {
         let newQty = variant.quantity;
-        if (b.type === "inbound") newQty += Number(b.quantity);
-        else if (b.type === "outbound") newQty -= Number(b.quantity);
-        else if (b.type === "adjustment") newQty = Number(b.quantity);
+        if (type === "inbound") newQty += quantity;
+        else if (type === "outbound") newQty -= quantity;
+        else if (type === "adjustment") newQty = quantity;
         newQty = Math.max(0, newQty);
         await prisma.productVariant.update({
           where: { id: b.variantId },
@@ -39,10 +72,10 @@ export async function POST(req: NextRequest) {
       data: {
         productId: b.productId,
         variantId: b.variantId || null,
-        type: b.type,
-        quantity: Number(b.quantity),
+        type,
+        quantity,
         reason: b.reason || "",
-        storeId: b.storeId || "default",
+        storeId: b.storeId,
         userId: session?.id || "unknown",
       },
     });

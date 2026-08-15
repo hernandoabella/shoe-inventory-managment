@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 
 interface Variant {
   id: string;
+  productId: string;
   name: string;
   sku: string;
   quantity: number;
@@ -31,7 +32,7 @@ export function InventoryAdjustmentForm() {
         const vs: Variant[] = [];
         products.forEach((p) =>
           p.variants.forEach((v: any) =>
-            vs.push({ ...v, product: { name: p.name } })
+            vs.push({ ...v, productId: p.id, product: { name: p.name } })
           )
         );
         setVariants(vs);
@@ -50,15 +51,14 @@ export function InventoryAdjustmentForm() {
     if (!current) return;
     setLoading(true);
     setMsg("");
-    const diff = parseInt(newQty) - current.quantity;
     const res = await fetch("/api/movements", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        productId: current.product.name,
+        productId: current.productId,
         variantId: current.id,
         type: "adjustment",
-        quantity: Math.abs(diff),
+        quantity: parseInt(newQty) || 0,
         reason: reason || "Ajuste manual",
         storeId,
       }),
