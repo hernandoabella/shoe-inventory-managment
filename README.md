@@ -2,7 +2,7 @@
 
 Aplicación de gestión de inventario de calzado — **simple pero 100% funcional**.
 
-Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS · Prisma + SQLite · Auth con JWT en cookie httpOnly.
+Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS · Prisma + PostgreSQL · Auth con JWT en cookie httpOnly.
 
 ## Puertos / servidores
 
@@ -11,10 +11,14 @@ Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS · Prisma + SQLite 
 ## Arranque rápido
 
 ```bash
-npm install
-npx prisma db push      # crea la base de datos SQLite (prisma/dev.db)
-npm run db:seed         # puebla datos iniciales (admin + tiendas + productos)
-npm run dev             # desarrollo
+# 1) Copia .env.example a .env y pon tu DATABASE_URL de PostgreSQL
+#    (Neon, Supabase, Railway...)
+cp .env.example .env
+
+npm install              # también genera el cliente Prisma (postinstall)
+npx prisma db push       # crea/actualiza el esquema en la base
+npm run db:seed          # puebla datos iniciales (admin + tiendas + productos)
+npm run dev              # desarrollo
 # o bien producción:
 npm run build && npm start
 ```
@@ -49,8 +53,21 @@ middleware.ts  # protege /dashboard y redirige / -> /dashboard
 
 ## Notas
 
-- Base de datos local en `prisma/dev.db` (SQLite). Para resetear: borra `prisma/dev.db` y vuelve a `prisma db push` + `db:seed`.
-- Variables en `.env`: `DATABASE_URL` y `JWT_SECRET`.
+- La base de datos es PostgreSQL y se configura con `DATABASE_URL` (Neon, Supabase, Railway...). `JWT_SECRET` firma las sesiones JWT.
+- Para resetear datos: `npm run db:reset` (borra el esquema y vuelve a sembrarlo).
+- `prisma/dev.db` es un residuo de la versión SQLite: ya no se usa y no debe subirse a Git.
+
+## Deploy en Vercel
+
+1. Crea una base PostgreSQL gratis en [Neon](https://neon.tech) o [Supabase](https://supabase.com) y copia su connection string.
+2. En [vercel.com](https://vercel.com) → *Add New Project* → importa el repo de GitHub (Next.js se detecta solo; build: `next build`).
+3. En *Settings → Environment Variables* agrega:
+   - `DATABASE_URL` → connection string de tu base PostgreSQL
+   - `JWT_SECRET` → una cadena larga y aleatoria
+4. Desde tu máquina, apuntando a esa misma base: `npx prisma db push` y luego `npm run db:seed` (crea el esquema y el usuario admin).
+5. Despliega. Cada `git push` a la rama principal genera un deploy automático.
+
+> El script `postinstall` ejecuta `prisma generate` automáticamente durante el build de Vercel.
 - Las secciones de Reportes y Configuración tienen páginas base; los reportes
   consumen `/api/reports` (inventory y movements ya funcionando).
 - Transferencias, Compras y Recepción funcionan con formularios que crean registros

@@ -41,3 +41,13 @@ yarn-error.log*
 next-env.d.ts
 
 *.log
+
+# local database (legacy SQLite)
+prisma/*.db*
+
+# diagnostic / local artifacts
+.freebuff/
+_check.css
+_cookies.txt
+_diag.html
+_diag_dash.html
