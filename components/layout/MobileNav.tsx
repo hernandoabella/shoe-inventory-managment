@@ -1,42 +1,76 @@
 "use client";
 
 import { useEffect } from "react";
-import { X } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { cn } from "@/lib/utils";
 
 export function MobileNav({
   open,
   onClose,
+  appName,
+  companyName,
+  logoUrl,
 }: {
   open: boolean;
   onClose: () => void;
+  appName: string;
+  companyName: string;
+  logoUrl: string | null;
 }) {
+  // Cerrar con Escape
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (open && e.key === "Escape") onClose();
     }
-    if (open) document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  // Bloquear el scroll del fondo mientras el menú está abierto
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   return (
-    <div className="fixed inset-0 z-50 md:hidden">
+    <div
+      className={cn(
+        "fixed inset-0 z-50 md:hidden",
+        open ? "pointer-events-auto" : "pointer-events-none"
+      )}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menú de navegación"
+      aria-hidden={!open}
+    >
+      {/* Fondo oscurecido */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className={cn(
+          "absolute inset-0 bg-black/40 transition-opacity duration-300",
+          open ? "opacity-100" : "opacity-0"
+        )}
         onClick={onClose}
         aria-hidden
       />
-      <div className="absolute left-0 top-0 h-full w-64 shadow-xl">
-        <button
-          onClick={onClose}
-          className="absolute right-3 top-4 z-10 rounded-md p-1 text-slate-400 hover:bg-white/10 hover:text-white"
-          aria-label="Cerrar menú"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <Sidebar forceShow />
+
+      {/* Cajón deslizante */}
+      <div
+        className={cn(
+          "absolute left-0 top-0 h-full w-64 max-w-[85vw] shadow-xl transition-transform duration-300 ease-out",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <Sidebar
+          forceShow
+          onClose={onClose}
+          appName={appName}
+          companyName={companyName}
+          logoUrl={logoUrl}
+        />
       </div>
     </div>
   );

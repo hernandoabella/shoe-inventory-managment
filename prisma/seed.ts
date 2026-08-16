@@ -22,32 +22,46 @@ async function main() {
   // Stores
   const store1 = await prisma.store.upsert({
     where: { code: "CENTRO" },
-    update: {},
+    update: {
+      address: "Cra. 7 # 71-21",
+      city: "Bogotá",
+      state: "Cundinamarca",
+      country: "Colombia",
+      timezone: "America/Bogota",
+      currency: "COP",
+    },
     create: {
       name: "Tienda Centro",
       code: "CENTRO",
-      address: "Calle Mayor 1",
-      city: "Madrid",
-      state: "Madrid",
-      country: "España",
-      timezone: "Europe/Madrid",
-      currency: "EUR",
+      address: "Cra. 7 # 71-21",
+      city: "Bogotá",
+      state: "Cundinamarca",
+      country: "Colombia",
+      timezone: "America/Bogota",
+      currency: "COP",
       isActive: true,
     },
   });
 
   const store2 = await prisma.store.upsert({
     where: { code: "NORTE" },
-    update: {},
+    update: {
+      address: "Av. El Poblado 45",
+      city: "Medellín",
+      state: "Antioquia",
+      country: "Colombia",
+      timezone: "America/Bogota",
+      currency: "COP",
+    },
     create: {
       name: "Tienda Norte",
       code: "NORTE",
-      address: "Av. Norte 45",
-      city: "Barcelona",
-      state: "Barcelona",
-      country: "España",
-      timezone: "Europe/Madrid",
-      currency: "EUR",
+      address: "Av. El Poblado 45",
+      city: "Medellín",
+      state: "Antioquia",
+      country: "Colombia",
+      timezone: "America/Bogota",
+      currency: "COP",
       isActive: true,
     },
   });
@@ -89,8 +103,8 @@ async function main() {
               brand: "Nike",
               size: "40",
               color: "Negro",
-              price: 79.99,
-              cost: 45,
+              price: 249900,
+              cost: 139900,
               quantity: 20,
               lowStock: 5,
             },
@@ -100,8 +114,8 @@ async function main() {
               brand: "Nike",
               size: "42",
               color: "Blanco",
-              price: 79.99,
-              cost: 45,
+              price: 249900,
+              cost: 139900,
               quantity: 3,
               lowStock: 5,
             },
@@ -109,6 +123,54 @@ async function main() {
         },
       },
     });
+  }
+
+  // Notificaciones iniciales
+  const admin = await prisma.user.findUnique({
+    where: { email: "admin@shoe.com" },
+  });
+  if (admin) {
+    const lowStockVariant = await prisma.productVariant.findUnique({
+      where: { sku: sku + "-42" },
+    });
+    const notificationCount = await prisma.notification.count({
+      where: { userId: admin.id },
+    });
+    if (notificationCount === 0) {
+      const seedNotifications = [];
+      if (lowStockVariant) {
+        seedNotifications.push({
+          userId: admin.id,
+          type: "low_stock",
+          title: "Stock bajo",
+          message: `${lowStockVariant.name} (${lowStockVariant.sku}) está bajo el umbral: ${lowStockVariant.quantity} unidades restantes.`,
+          link: "/dashboard/inventory",
+          refId: lowStockVariant.id,
+          read: false,
+        });
+      }
+      seedNotifications.push(
+        {
+          userId: admin.id,
+          type: "system",
+          title: "Bienvenido",
+          message: "Tu panel de inventario está listo. Recibirás notificaciones de stock, transferencias y compras.",
+          link: null,
+          refId: null,
+          read: false,
+        },
+        {
+          userId: admin.id,
+          type: "purchase",
+          title: "Compra de ejemplo",
+          message: "Registra tu primera orden de compra desde la sección Compras.",
+          link: "/dashboard/purchases",
+          refId: null,
+          read: false,
+        }
+      );
+      await prisma.notification.createMany({ data: seedNotifications });
+    }
   }
 
   console.log("Seed completado. Usuario: admin@shoe.com / admin123");

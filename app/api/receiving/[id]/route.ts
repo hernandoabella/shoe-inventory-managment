@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { notifyAllUsers } from "@/lib/notifications";
 
 export async function GET(
   _req: NextRequest,
@@ -21,6 +22,17 @@ export async function PUT(
       where: { id },
       data: { status: "received" },
     });
+
+    await notifyAllUsers({
+      type: "receiving",
+      title: "Compra recibida",
+      message: `La orden de compra${
+        purchase.reference ? ` ${purchase.reference}` : ""
+      } fue marcada como recibida.`,
+      link: "/dashboard/receiving",
+      refId: purchase.id,
+    }).catch(() => {});
+
     return NextResponse.json(purchase);
   } catch {
     return NextResponse.json({ error: "Error al recibir" }, { status: 500 });

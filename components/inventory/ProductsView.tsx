@@ -145,9 +145,9 @@ export function ProductsView({
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="flex items-center text-2xl font-bold text-gray-800">
+          <h2 className="flex flex-wrap items-center text-2xl font-bold text-gray-800">
             <span className="mr-2 text-blue-600">▦</span> Productos
             <span className="ml-2 text-sm font-normal text-gray-500">
               (Total: {total.toLocaleString()})
@@ -157,7 +157,7 @@ export function ProductsView({
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white shadow transition hover:bg-blue-700"
+          className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-white shadow transition hover:bg-blue-700 md:w-auto md:py-2"
         >
           <Plus className="mr-2" /> Nuevo Producto
         </button>
@@ -233,13 +233,13 @@ export function ProductsView({
               </label>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
+          <div className="flex flex-col gap-2 md:flex-row">
+            <Button type="submit" className="w-full justify-center bg-blue-500 py-2.5 hover:bg-blue-600 md:w-auto md:py-2">
               <Search className="mr-1" /> Buscar
             </Button>
             <Link
               href="/dashboard/inventory/products"
-              className="rounded-lg bg-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-400"
+              className="rounded-lg bg-gray-300 px-4 py-2.5 text-center text-sm text-gray-700 transition hover:bg-gray-400 md:py-2"
             >
               <Eraser className="mr-1 inline" /> Limpiar filtros
             </Link>
@@ -247,11 +247,11 @@ export function ProductsView({
         </form>
       </div>
 
-      {/* Tabla */}
+      {/* Tabla / tarjetas */}
       <div className="overflow-hidden rounded-xl bg-white shadow-md">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+            <thead className="hidden bg-gray-100 text-xs uppercase text-gray-700 md:table-header-group">
               <tr>
                 <th className="px-4 py-3 text-left">#</th>
                 <th className="px-4 py-3 text-left">Código Barras</th>
@@ -264,9 +264,9 @@ export function ProductsView({
                 <th className="px-4 py-3 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="space-y-3 md:space-y-0 md:divide-y md:divide-gray-200">
               {products.length === 0 && (
-                <tr>
+                <tr className="block rounded-lg border border-gray-200 p-4 md:table-row md:rounded-none md:border-0 md:p-0">
                   <td colSpan={9} className="py-8 text-center text-gray-500">
                     No hay productos registrados con estos filtros
                   </td>
@@ -275,29 +275,35 @@ export function ProductsView({
               {products.map((p, i) => {
                 const v = p.variants[0];
                 const stockBajo = v ? v.quantity <= v.lowStock : false;
+                const lbl = "before:mb-1 before:block before:text-[11px] before:font-semibold before:uppercase before:tracking-wide before:text-gray-400 before:content-[attr(data-label)] md:before:content-none";
                 return (
-                  <tr key={p.id} className="transition hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{(page - 1) * 10 + i + 1}</td>
-                    <td className="px-4 py-3">
+                  <tr
+                    key={p.id}
+                    className="block rounded-lg border border-gray-200 p-4 transition hover:bg-gray-50 md:table-row md:rounded-none md:border-0 md:p-0"
+                  >
+                    <td className="block py-1.5 font-medium md:table-cell md:px-4 md:py-3">
+                      {(page - 1) * 10 + i + 1}
+                    </td>
+                    <td data-label="Código Barras" className={`block py-1.5 md:table-cell md:px-4 md:py-3 ${lbl}`}>
                       <input
                         id={`sku-${p.id}`}
                         defaultValue={p.sku}
-                        className="w-full rounded-lg border p-1.5 font-mono text-xs focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border p-2 font-mono text-xs focus:ring-2 focus:ring-blue-500 md:p-1.5"
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Nombre" className={`block py-1.5 md:table-cell md:px-4 md:py-3 ${lbl}`}>
                       <input
                         id={`name-${p.id}`}
                         defaultValue={p.name}
                         required
-                        className="w-full rounded-lg border p-1.5 text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border p-2 text-sm focus:ring-2 focus:ring-blue-500 md:p-1.5"
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Categoría" className={`block py-1.5 md:table-cell md:px-4 md:py-3 ${lbl}`}>
                       <select
                         id={`cat-${p.id}`}
                         defaultValue={p.category || ""}
-                        className="w-full rounded-lg border p-1.5 text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border p-2 text-sm focus:ring-2 focus:ring-blue-500 md:p-1.5"
                       >
                         <option value="">—</option>
                         {categories.map((c) => (
@@ -305,36 +311,36 @@ export function ProductsView({
                         ))}
                       </select>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td data-label="Precio" className={`block py-1.5 md:table-cell md:px-4 md:py-3 md:text-right ${lbl}`}>
                       <input
                         id={`price-${p.id}`}
                         type="number"
                         step="0.01"
                         defaultValue={v?.price ?? 0}
-                        className="w-full rounded-lg border p-1.5 text-right text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border p-2 text-right text-sm focus:ring-2 focus:ring-blue-500 md:p-1.5"
                       />
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td data-label="Stock" className={`block py-1.5 md:table-cell md:px-4 md:py-3 md:text-center ${lbl}`}>
                       <input
                         id={`qty-${p.id}`}
                         type="number"
                         defaultValue={v?.quantity ?? 0}
-                        className={`w-24 rounded-lg border p-1.5 text-center text-sm focus:ring-2 focus:ring-blue-500 ${stockBajo ? "font-bold text-red-600" : ""}`}
+                        className={`w-full rounded-lg border p-2 text-center text-sm focus:ring-2 focus:ring-blue-500 md:w-24 md:p-1.5 ${stockBajo ? "font-bold text-red-600" : ""}`}
                       />
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td data-label="Stock Mín." className={`block py-1.5 md:table-cell md:px-4 md:py-3 md:text-center ${lbl}`}>
                       <input
                         id={`min-${p.id}`}
                         type="number"
                         defaultValue={v?.lowStock ?? 5}
-                        className="w-20 rounded-lg border p-1.5 text-center text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border p-2 text-center text-sm focus:ring-2 focus:ring-blue-500 md:w-20 md:p-1.5"
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Proveedor" className={`block py-1.5 md:table-cell md:px-4 md:py-3 ${lbl}`}>
                       <select
                         id={`prov-${p.id}`}
                         defaultValue={p.brand || ""}
-                        className="w-full rounded-lg border p-1.5 text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border p-2 text-sm focus:ring-2 focus:ring-blue-500 md:p-1.5"
                       >
                         <option value="">—</option>
                         {suppliers.map((s) => (
@@ -342,18 +348,18 @@ export function ProductsView({
                         ))}
                       </select>
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                    <td data-label="Acciones" className={`block py-1.5 md:table-cell md:px-4 md:py-3 md:text-center ${lbl}`}>
+                      <div className="flex gap-2">
                         <button
                           onClick={() => saveRow(p)}
-                          className="rounded-lg bg-yellow-500 px-2 py-1.5 text-white transition hover:bg-yellow-600"
+                          className="flex flex-1 items-center justify-center rounded-lg bg-yellow-500 px-2 py-2.5 text-white transition hover:bg-yellow-600 md:flex-none md:py-1.5"
                           title="Guardar"
                         >
                           <Save className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => deleteRow(p.id)}
-                          className="rounded-lg bg-red-500 px-2 py-1.5 text-white transition hover:bg-red-600"
+                          className="flex flex-1 items-center justify-center rounded-lg bg-red-500 px-2 py-2.5 text-white transition hover:bg-red-600 md:flex-none md:py-1.5"
                           title="Eliminar"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -370,7 +376,7 @@ export function ProductsView({
 
       {/* Paginación */}
       {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center space-x-2">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           {page > 1 && (
             <Link href={buildUrl({ pagina: page - 1 })} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50">
               ← Anterior
@@ -418,16 +424,22 @@ export function ProductsView({
 
       {/* Modal Nuevo Producto */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="max-h-[92vh] w-full overflow-y-auto rounded-xl bg-white p-6 shadow-xl md:max-w-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center text-xl font-semibold">
                 <Barcode className="mr-2 text-blue-600" /> Nuevo Producto
               </h3>
               <button onClick={() => setModalOpen(false)} className="text-2xl text-gray-400 hover:text-gray-600">×</button>
             </div>
-            <form onSubmit={crear} className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
+            <form onSubmit={crear} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-700">Código de Barras</label>
                 <div className="flex gap-2">
                   <Input
@@ -442,7 +454,7 @@ export function ProductsView({
                 </div>
                 <p className="mt-1 text-xs text-gray-500">Código único. Puedes escanearlo o generarlo automáticamente.</p>
               </div>
-              <div className="col-span-2">
+              <div className="md:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-700">Nombre del producto *</label>
                 <Input value={form.nombre} onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))} placeholder="Ej. Zapato deportivo Nike" required />
               </div>
@@ -473,15 +485,15 @@ export function ProductsView({
                 <Input type="number" value={form.stock_minimo} onChange={(e) => setForm((f) => ({ ...f, stock_minimo: e.target.value }))} placeholder="Ej. 5" />
                 <p className="mt-1 text-xs text-gray-500">Alerta cuando el stock baje de este número</p>
               </div>
-              <div className="col-span-2">
+              <div className="md:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-700">Descripción</label>
                 <textarea rows={3} value={form.descripcion} onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))} placeholder="Detalles del producto..." className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" />
               </div>
-              <div className="col-span-2 flex justify-end gap-3">
-                <button type="button" onClick={() => setModalOpen(false)} className="rounded-lg bg-gray-500 px-4 py-2 text-white transition hover:bg-gray-600">
+              <div className="flex flex-col-reverse gap-3 md:col-span-2 md:flex-row md:justify-end">
+                <button type="button" onClick={() => setModalOpen(false)} className="w-full rounded-lg bg-gray-500 px-4 py-3 text-white transition hover:bg-gray-600 md:w-auto md:py-2">
                   Cancelar
                 </button>
-                <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700">
+                <button type="submit" className="w-full rounded-lg bg-blue-600 px-4 py-3 text-white transition hover:bg-blue-700 md:w-auto md:py-2">
                   <Save className="mr-1 inline" /> Guardar Producto
                 </button>
               </div>

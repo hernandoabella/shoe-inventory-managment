@@ -1,12 +1,60 @@
 "use client";
 
-import { Menu, Search, Bell, X } from "lucide-react";
+import { Menu, Search, Bell, X, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useNotifications } from "@/hooks/useNotifications";
+import { timeAgo } from "@/lib/utils";
+import { Notification } from "@/types/notification";
 
 interface HeaderProps {
   onMenuClick?: () => void;
+}
+
+const typeDotClass: Record<string, string> = {
+  low_stock: "bg-amber-500",
+  transfer: "bg-blue-500",
+  purchase: "bg-violet-500",
+  receiving: "bg-emerald-500",
+  system: "bg-gray-400",
+};
+
+function NotificationItem({
+  notification,
+  onOpen,
+}: {
+  notification: Notification;
+  onOpen: (n: Notification) => void;
+}) {
+  return (
+    <button
+      onClick={() => onOpen(notification)}
+      className={`flex w-full items-start gap-3 border-b border-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+        !notification.read ? "bg-indigo-50/40" : ""
+      }`}
+    >
+      <div
+        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+          typeDotClass[notification.type] || typeDotClass.system
+        }`}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-gray-900">
+          {notification.title}
+        </p>
+        <p className="line-clamp-2 text-sm text-gray-600">
+          {notification.message}
+        </p>
+        <p className="mt-1 text-xs text-gray-400">
+          {timeAgo(notification.createdAt)}
+        </p>
+      </div>
+      {!notification.read && (
+        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500" />
+      )}
+    </button>
+  );
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
@@ -14,6 +62,13 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
 
   const searchRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -47,11 +102,11 @@ export function Header({ onMenuClick }: HeaderProps) {
     }
   };
 
-  const notifications = [
-    { id: 1, title: "Stock bajo", message: "Productos con stock crítico", time: "Hace 2 min", type: "warning" },
-    { id: 2, title: "Nueva transferencia", message: "Transferencia recibida", time: "Hace 15 min", type: "info" },
-    { id: 3, title: "Conteo completado", message: "Conteo de inventario finalizado", time: "Hace 1 hora", type: "success" },
-  ];
+  const handleOpenNotification = (n: Notification) => {
+    markAsRead(n.id);
+    setIsNotificationsOpen(false);
+    if (n.link) router.push(n.link);
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-gray-200 bg-white px-4 md:px-6">
@@ -126,38 +181,41 @@ export function Header({ onMenuClick }: HeaderProps) {
             aria-label="Notificaciones"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
-              3
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </button>
 
           {isNotificationsOpen && (
             <div className="absolute right-0 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-xl">
-              <div className="border-b border-gray-100 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                 <h3 className="font-semibold text-gray-900">Notificaciones</h3>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+                  >
+                    <CheckCheck className="h-3.5 w-3.5" />
+                    Marcar todas
+                  </button>
+                )}
               </div>
               <div className="max-h-80 overflow-y-auto">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className="flex items-start gap-3 border-b border-gray-50 px-4 py-3 hover:bg-gray-50"
-                  >
-                    <div
-                      className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                        n.type === "warning"
-                          ? "bg-amber-500"
-                          : n.type === "info"
-                          ? "bg-blue-500"
-                          : "bg-emerald-500"
-                      }`}
+                {notifications.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-sm text-gray-400">
+                    No hay notificaciones
+                  </p>
+                ) : (
+                  notifications.map((n) => (
+                    <NotificationItem
+                      key={n.id}
+                      notification={n}
+                      onOpen={handleOpenNotification}
                     />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{n.title}</p>
-                      <p className="text-sm text-gray-600">{n.message}</p>
-                      <p className="mt-1 text-xs text-gray-400">{n.time}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}

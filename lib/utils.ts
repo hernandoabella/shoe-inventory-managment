@@ -4,12 +4,14 @@ export function cn(...classes: (string | undefined | null | false)[]) {
 
 export function formatCurrency(
   amount: number,
-  currency: string = "USD",
-  locale: string = "en-US"
+  currency: string = "COP",
+  locale: string = "es-CO"
 ) {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
+    // COP se muestra sin decimales (ej. $ 249.900)
+    ...(currency === "COP" ? { minimumFractionDigits: 0, maximumFractionDigits: 0 } : {}),
   }).format(amount);
 }
 
@@ -25,6 +27,23 @@ export function generateSku(prefix: string = "SKU") {
   const timestamp = Date.now().toString().slice(-6);
   const random = Math.random().toString(36).substring(2, 5).toUpperCase();
   return `${prefix}-${timestamp}-${random}`;
+}
+
+export function timeAgo(date: string | Date) {
+  const seconds = Math.floor(
+    (Date.now() - new Date(date).getTime()) / 1000
+  );
+  if (seconds < 60) return "Ahora mismo";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `Hace ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Hace ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `Hace ${days} d`;
+  return new Date(date).toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+  });
 }
 
 export function calculateVariance(

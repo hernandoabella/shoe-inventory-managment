@@ -10,12 +10,18 @@ export const Table = ({
   </div>
 );
 
-export const TableHeader = ({ children }: { children: React.ReactNode }) => (
-  <thead className="[&_tr]:bg-gray-50">{children}</thead>
+export const TableHeader = ({
+  children,
+  className,
+}: React.HTMLAttributes<HTMLTableSectionElement>) => (
+  <thead className={cn("[&_tr]:bg-gray-50", className)}>{children}</thead>
 );
 
-export const TableBody = ({ children }: { children: React.ReactNode }) => (
-  <tbody>{children}</tbody>
+export const TableBody = ({
+  children,
+  className,
+}: React.HTMLAttributes<HTMLTableSectionElement>) => (
+  <tbody className={className}>{children}</tbody>
 );
 
 export const TableRow = ({ children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { notifyAllUsers } from "@/lib/notifications";
 
 export async function GET(
   _req: NextRequest,
@@ -27,6 +28,27 @@ export async function PUT(
         quantity: b.quantity !== undefined ? Number(b.quantity) : undefined,
       },
     });
+
+    if (transfer.status === "delivered") {
+      await notifyAllUsers({
+        type: "transfer",
+        title: "Transferencia entregada",
+        message: `La transferencia de ${transfer.quantity} unidades fue entregada${
+          transfer.reference ? ` (${transfer.reference})` : ""
+        }.`,
+        link: "/dashboard/transfers",
+        refId: transfer.id,
+      }).catch(() => {});
+    } else if (transfer.status === "cancelled") {
+      await notifyAllUsers({
+        type: "transfer",
+        title: "Transferencia cancelada",
+        message: `Una transferencia de ${transfer.quantity} unidades fue cancelada.`,
+        link: "/dashboard/transfers",
+        refId: transfer.id,
+      }).catch(() => {});
+    }
+
     return NextResponse.json(transfer);
   } catch {
     return NextResponse.json({ error: "Error al actualizar" }, { status: 500 });

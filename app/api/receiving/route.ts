@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { notifyAllUsers } from "@/lib/notifications";
 
 export async function GET() {
   const receiving = await prisma.purchase.findMany({
@@ -27,6 +28,17 @@ export async function POST(req: NextRequest) {
       where: { id: b.purchaseId },
       data: { status: "received" },
     });
+
+    await notifyAllUsers({
+      type: "receiving",
+      title: "Compra recibida",
+      message: `La orden de compra${
+        updated.reference ? ` ${updated.reference}` : ""
+      } fue marcada como recibida.`,
+      link: "/dashboard/receiving",
+      refId: updated.id,
+    }).catch(() => {});
+
     return NextResponse.json(updated, { status: 201 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Error" }, { status: 500 });

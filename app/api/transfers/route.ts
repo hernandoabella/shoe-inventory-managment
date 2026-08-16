@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { notifyAllUsers } from "@/lib/notifications";
 
 export async function GET() {
   const transfers = await prisma.transfer.findMany({
@@ -25,6 +26,17 @@ export async function POST(req: Request) {
         userId: session?.id || "unknown",
       },
     });
+
+    await notifyAllUsers({
+      type: "transfer",
+      title: "Nueva transferencia",
+      message: `Transferencia creada por ${Number(b.quantity)} unidades${
+        transfer.reference ? ` (${transfer.reference})` : ""
+      }.`,
+      link: "/dashboard/transfers",
+      refId: transfer.id,
+    }).catch(() => {});
+
     return NextResponse.json(transfer, { status: 201 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Error" }, { status: 500 });

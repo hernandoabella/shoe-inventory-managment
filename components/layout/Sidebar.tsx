@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Store,
   Warehouse,
+  X,
 } from "lucide-react";
 
 type Item = {
@@ -76,7 +77,15 @@ function isActive(pathname: string, href?: string, children?: Item["children"]) 
   return false;
 }
 
-function NavItem({ item, pathname }: { item: Item; pathname: string }) {
+function NavItem({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: Item;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   const active = isActive(pathname, item.href, item.children);
   const [open, setOpen] = useState(false);
   const Icon = item.icon;
@@ -122,6 +131,7 @@ function NavItem({ item, pathname }: { item: Item; pathname: string }) {
                   <Link
                     key={child.href}
                     href={child.href}
+                    onClick={onNavigate}
                     className={cn(
                       "flex items-center gap-3 rounded-md py-2 pl-11 pr-3 text-sm transition-colors",
                       childActive
@@ -144,6 +154,7 @@ function NavItem({ item, pathname }: { item: Item; pathname: string }) {
   return (
     <Link
       href={item.href!}
+      onClick={onNavigate}
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
         active
@@ -157,28 +168,63 @@ function NavItem({ item, pathname }: { item: Item; pathname: string }) {
   );
 }
 
-export function Sidebar({ forceShow = false }: { forceShow?: boolean }) {
+export function Sidebar({
+  forceShow = false,
+  onClose,
+  appName,
+  companyName,
+  logoUrl,
+}: {
+  forceShow?: boolean;
+  onClose?: () => void;
+  appName: string;
+  companyName: string;
+  logoUrl: string | null;
+}) {
   const pathname = usePathname();
   return (
     <aside
       className={cn(
         "w-64 shrink-0 flex-col bg-slate-900 text-white",
-        forceShow ? "flex" : "hidden md:flex"
+        forceShow ? "flex h-full" : "hidden md:flex"
       )}
     >
       <div className="flex h-16 items-center gap-2.5 border-b border-white/10 px-5">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-lg font-bold shadow-lg">
-          S
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt={appName}
+            className="h-10 w-10 shrink-0 rounded-lg object-contain shadow-lg"
+          />
+        ) : (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-lg font-bold shadow-lg">
+            {(appName || "S").charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="truncate text-sm font-semibold">{appName}</p>
+          <p className="truncate text-[11px] text-slate-400">{companyName}</p>
         </div>
-        <div className="min-w-0 leading-tight">
-          <p className="truncate text-sm font-semibold">Shoe Inventory</p>
-          <p className="truncate text-[11px] text-slate-400">Gestión de calzado</p>
-        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="-mr-1 rounded-md p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+            aria-label="Cerrar menú"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-3 py-4">
         {items.map((item) => (
-          <NavItem key={item.title} item={item} pathname={pathname} />
+          <NavItem
+            key={item.title}
+            item={item}
+            pathname={pathname}
+            onNavigate={onClose}
+          />
         ))}
       </nav>
 

@@ -117,3 +117,18 @@ model Supplier {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // low_stock | transfer | purchase | receiving | system
+  title     String
+  message   String
+  link      String?
+  refId     String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}

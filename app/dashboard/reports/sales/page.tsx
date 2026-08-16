@@ -4,7 +4,7 @@ import { SalesReport } from "@/components/reports/SalesReport";
 
 export const dynamic = "force-dynamic";
 
-const CURRENCY = "EUR";
+const CURRENCY = "COP";
 
 export default async function SalesReportPage() {
   const [outbound, variants, products, purchases, purchasesByStatus] =

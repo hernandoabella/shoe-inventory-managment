@@ -50,7 +50,7 @@ export function StoreForm({ id, store }: StoreFormProps) {
     state: store?.state || "",
     country: store?.country || "",
     timezone: store?.timezone || "UTC",
-    currency: store?.currency || "EUR",
+    currency: store?.currency || "COP",
     phone: store?.phone || "",
     email: store?.email || "",
   });

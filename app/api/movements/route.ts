@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { checkLowStockAndNotify } from "@/lib/notifications";
 
 const VALID_TYPES = ["inbound", "outbound", "adjustment"];
 
@@ -79,6 +80,12 @@ export async function POST(req: NextRequest) {
         userId: session?.id || "unknown",
       },
     });
+
+    // Notifica cuando una variante queda bajo su umbral de stock.
+    if (b.variantId) {
+      await checkLowStockAndNotify(b.variantId).catch(() => {});
+    }
+
     return NextResponse.json(movement, { status: 201 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Error" }, { status: 500 });

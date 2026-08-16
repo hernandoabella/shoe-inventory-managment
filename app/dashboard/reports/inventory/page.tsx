@@ -4,7 +4,7 @@ import { InventoryReport } from "@/components/reports/InventoryReport";
 
 export const dynamic = "force-dynamic";
 
-const CURRENCY = "EUR";
+const CURRENCY = "COP";
 
 export default async function InventoryReportPage() {
   const variants = await prisma.productVariant.findMany({

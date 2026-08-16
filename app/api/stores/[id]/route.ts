@@ -28,7 +28,7 @@ export async function PUT(
         state: b.state || null,
         country: b.country,
         timezone: b.timezone || "UTC",
-        currency: b.currency || "EUR",
+        currency: b.currency || "COP",
         phone: b.phone || null,
         email: b.email || null,
         logoUrl: b.logoUrl || null,
